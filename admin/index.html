@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trio 后台管理</title>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #121212; color: #e0e0e0; min-height: 100vh; }
+        .login { max-width: 400px; margin: 100px auto; padding: 40px; background: #1e1e1e; border-radius: 16px; }
+        .login h1 { text-align: center; margin-bottom: 32px; color: #5eb6fb; font-size: 28px; }
+        .login input { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #333; border-radius: 10px; background: #2a2a2a; color: #fff; font-size: 15px; }
+        .login button { width: 100%; padding: 14px; background: #5eb6fb; color: #000; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 16px; }
+        .login .error { color: #f44336; margin-top: 12px; font-size: 14px; text-align: center; }
+        .dashboard { display: none; }
+        .header { background: #1e1e1e; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .header h2 { color: #5eb6fb; font-size: 20px; }
+        .header button { padding: 8px 20px; background: #f44336; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+        .tabs { display: flex; gap: 4px; padding: 16px 24px; background: #1a1a1a; }
+        .tabs button { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; background: #2a2a2a; color: #999; }
+        .tabs button.active { background: #5eb6fb; color: #000; }
+        .content { padding: 24px; }
+        table { width: 100%; border-collapse: collapse; background: #1e1e1e; border-radius: 12px; overflow: hidden; }
+        th { text-align: left; padding: 14px 16px; background: #2a2a2a; color: #5eb6fb; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 12px 16px; border-bottom: 1px solid #2a2a2a; font-size: 14px; }
+        tr:hover { background: #252525; }
+        .count { font-weight: 600; color: #5eb6fb; }
+        .stat-card { background: #1e1e1e; padding: 20px; border-radius: 12px; text-align: center; }
+        .stat-card .num { font-size: 32px; font-weight: 700; color: #5eb6fb; }
+        .stat-card .label { font-size: 13px; color: #999; margin-top: 4px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    </style>
+</head>
+<body>
+<div id="loginPage" class="login">
+    <h1>Trio 后台管理</h1>
+    <input id="email" type="email" placeholder="邮箱" value="">
+    <input id="password" type="password" placeholder="密码" value="">
+    <button onclick="doLogin()">登录</button>
+    <div id="loginError" class="error"></div>
+</div>
+
+<div id="dashboard" class="dashboard">
+    <div class="header">
+        <h2>Trio Admin</h2>
+        <div style="display:flex;align-items:center;gap:16px">
+            <span id="userDisplay" style="color:#999;font-size:14px"></span>
+            <button onclick="logout()">退出</button>
+        </div>
+    </div>
+    <div class="tabs">
+        <button id="tabStats" class="active" onclick="switchTab('stats')">数据统计</button>
+        <button id="tabUsers" onclick="switchTab('users')">用户管理</button>
+        <button id="tabMessages" onclick="switchTab('messages')">消息管理</button>
+        <button id="tabGroups" onclick="switchTab('groups')">群组管理</button>
+        <button id="tabMoments" onclick="switchTab('moments')">动态管理</button>
+    </div>
+    <div class="content" id="tabContent"></div>
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyDPD1zIDY1O22yeIvTXJpltczPQBiEYe_M",
+    authDomain: "trio-3f8e2.firebaseapp.com",
+    projectId: "trio-3f8e2",
+    storageBucket: "trio-3f8e2.firebasestorage.app",
+    messagingSenderId: "742263353479",
+    appId: "1:742263353479:web:f9db5493b86abf5655c822"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('userDisplay').textContent = user.email;
+        switchTab('stats');
+    } else {
+        document.getElementById('loginPage').style.display = 'block';
+        document.getElementById('dashboard').style.display = 'none';
+    }
+});
+
+function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    errorDiv.textContent = '';
+    auth.signInWithEmailAndPassword(email, password)
+        .catch(e => { errorDiv.textContent = '登录失败: ' + (e.code === 'auth/invalid-credential' ? '邮箱或密码错误' : e.message); });
+}
+
+function logout() { auth.signOut(); }
+
+function switchTab(tab) {
+    ['stats','users','messages','groups','moments'].forEach(t => {
+        document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+    });
+    const content = document.getElementById('tabContent');
+    if (tab === 'stats') renderStats();
+    else if (tab === 'users') renderUsers();
+    else if (tab === 'messages') renderMessages();
+    else if (tab === 'groups') renderGroups();
+    else if (tab === 'moments') renderMoments();
+}
+
+async function renderStats() {
+    const [usersSnap, msgsSnap, groupsSnap, momentsSnap] = await Promise.all([
+        db.collection('users').get(),
+        db.collection('messages').get(),
+        db.collection('groups').get(),
+        db.collection('moments').get()
+    ]);
+    document.getElementById('tabContent').innerHTML = `
+        <div class="stats">
+            <div class="stat-card"><div class="num">${usersSnap.size}</div><div class="label">注册用户</div></div>
+            <div class="stat-card"><div class="num">${msgsSnap.size}</div><div class="label">消息总数</div></div>
+            <div class="stat-card"><div class="num">${groupsSnap.size}</div><div class="label">群组数量</div></div>
+        </div>
+        <div class="stats">
+            <div class="stat-card"><div class="num">${momentsSnap.size}</div><div class="label">动态数量</div></div>
+            <div class="stat-card"><div class="num">--</div><div class="label">今日活跃</div></div>
+            <div class="stat-card"><div class="num">--</div><div class="label">今日消息</div></div>
+        </div>`;
+}
+
+async function renderUsers() {
+    const users = await db.collection('users').get();
+    let html = '<table><tr><th>用户名</th><th>邮箱</th><th>角色</th><th>状态</th></tr>';
+    users.forEach(doc => {
+        const u = doc.data();
+        html += `<tr><td>${u.username||'-'}</td><td>${u.email||'-'}</td><td>${u.role||'USER'}</td><td>${u.isActive?'✅':'❌'}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('tabContent').innerHTML = html;
+}
+
+async function renderMessages() {
+    const msgs = await db.collection('messages').orderBy('createdAt','desc').limit(100).get();
+    let html = '<table><tr><th>发送者</th><th>类型</th><th>内容</th><th>时间</th></tr>';
+    msgs.forEach(doc => {
+        const m = doc.data();
+        html += `<tr><td>${m.senderName||m.senderId}</td><td>${m.type}</td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.content||'[图片]'}</td><td>${new Date(m.createdAt).toLocaleString()}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('tabContent').innerHTML = html;
+}
+
+async function renderGroups() {
+    const groups = await db.collection('groups').get();
+    let html = '<table><tr><th>群名</th><th>成员数</th><th>创建时间</th></tr>';
+    groups.forEach(doc => {
+        const g = doc.data();
+        html += `<tr><td>${g.name}</td><td>${(g.members||[]).length}</td><td>${new Date(g.createdAt).toLocaleString()}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('tabContent').innerHTML = html;
+}
+
+async function renderMoments() {
+    const moments = await db.collection('moments').orderBy('createdAt','desc').get();
+    let html = '<table><tr><th>用户</th><th>内容</th><th>点赞</th><th>时间</th></tr>';
+    moments.forEach(doc => {
+        const m = doc.data();
+        html += `<tr><td>${m.username||m.userId}</td><td>${m.content}</td><td>${(m.likes||[]).length}</td><td>${new Date(m.createdAt).toLocaleString()}</td></tr>`;
+    });
+    html += '</table>';
+    document.getElementById('tabContent').innerHTML = html;
+}
+</script>
+</body>
+</html>

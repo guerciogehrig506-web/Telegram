@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "742263353479",
+    "project_id": "trio-3f8e2",
+    "storage_bucket": "trio-3f8e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:742263353479:android:f9db5493b86abf5655c822",
+        "android_client_info": {
+          "package_name": "com.trio.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPD1zIDY1O22yeIvTXJpltczPQBiEYe_M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trio Admin - 仪表盘</title>
+  <link rel="stylesheet" href="/admin/css/style.css">
+</head>
+<body>
+  <%- include('partials/header', { admin, current: 'dashboard' }) %>
+  <div class="admin-body">
+    <%- include('partials/sidebar', { current: 'dashboard' }) %>
+    <main class="content">
+      <h2>仪表盘</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number"><%= stats.users %></div>
+          <div class="stat-label">用户总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number"><%= stats.messages %></div>
+          <div class="stat-label">消息总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number"><%= stats.moments %></div>
+          <div class="stat-label">动态总数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number"><%= stats.groups %></div>
+          <div class="stat-label">群组总数</div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

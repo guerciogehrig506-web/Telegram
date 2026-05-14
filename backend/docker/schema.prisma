@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  email        String        @unique
+  password     String
+  role         String        @default("USER")
+  department   String        @default("")
+  avatar       String        @default("")
+  isActive     Boolean       @default(true)
+  lastSeen     DateTime      @default(now())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  sentMessages Message[]     @relation("SentMessages")
+  recvMessages Message[]     @relation("RecvMessages")
+  groupMembers GroupMember[]
+  ownTasks     Task[]        @relation("OwnerTasks")
+  assignTasks  Task[]        @relation("AssigneeTasks")
+  approvals    Approval[]
+  moments      Moment[]
+  momentLikes  MomentLike[]
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  image      String?
+  type       String   @default("text")
+  senderId   String
+  receiverId String?
+  groupId    String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User?    @relation("RecvMessages", fields: [receiverId], references: [id])
+  group      Group?   @relation(fields: [groupId], references: [id])
+}
+
+model Group {
+  id        String        @id @default(cuid())
+  name      String
+  avatar    String?
+  members   GroupMember[]
+  messages  Message[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model GroupMember {
+  id       String  @id @default(cuid())
+  groupId  String
+  userId   String
+  group    Group   @relation(fields: [groupId], references: [id])
+  user     User    @relation(fields: [userId], references: [id])
+  joinedAt DateTime @default(now())
+
+  @@unique([groupId, userId])
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("TODO")
+  priority    String    @default("MEDIUM")
+  ownerId     String
+  assigneeId  String?
+  owner       User      @relation("OwnerTasks", fields: [ownerId], references: [id])
+  assignee    User?     @relation("AssigneeTasks", fields: [assigneeId], references: [id])
+  deadline    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Approval {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      String    @default("PENDING")
+  applicantId String
+  applicant   User      @relation(fields: [applicantId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Moment {
+  id        String       @id @default(cuid())
+  content   String
+  image     String?
+  authorId  String
+  user      User         @relation(fields: [authorId], references: [id])
+  likes     MomentLike[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model MomentLike {
+  id       String   @id @default(cuid())
+  momentId String
+  userId   String
+  moment   Moment   @relation(fields: [momentId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([momentId, userId])
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trio Admin - 动态管理</title>
+  <link rel="stylesheet" href="/admin/css/style.css">
+</head>
+<body>
+  <%- include('partials/header', { admin, current: 'moments' }) %>
+  <div class="admin-body">
+    <%- include('partials/sidebar', { current: 'moments' }) %>
+    <main class="content">
+      <h2>动态管理</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>作者</th>
+            <th>内容</th>
+            <th>点赞数</th>
+            <th>发布时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% moments.forEach(function(m) { %>
+            <tr>
+              <td><%= m.user?.username || '-' %></td>
+              <td class="msg-content"><%= m.content %></td>
+              <td><%= m._count?.likes || 0 %></td>
+              <td><%= new Date(m.createdAt).toLocaleString('zh-CN') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </main>
+  </div>
+</body>
+</html>

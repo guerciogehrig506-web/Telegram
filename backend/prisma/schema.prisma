@@ -1,0 +1,138 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider     = "sqlite"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  username   String   @unique
+  email      String   @unique
+  password   String
+  role       String   @default("USER")
+  department String   @default("")
+  bio        String   @default("")
+  avatar     String   @default("")
+  fcmToken   String?
+  lastSeen   DateTime @default(now())
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  messagesSent     Message[]     @relation("MessageSender")
+  messagesReceived Message[]     @relation("MessageReceiver")
+  groups           Group[]       @relation("GroupCreator")
+  groupMembers     GroupMember[]
+  tasksAssigned    Task[]        @relation("TaskAssignee")
+  tasksCreated     Task[]        @relation("TaskCreator")
+  approvalsApplied Approval[]    @relation("ApprovalApplicant")
+  approvalsHandled Approval[]    @relation("ApprovalApprover")
+  moments          Moment[]
+  momentLikes      MomentLike[]
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  image      String?
+  type       String   @default("text")
+  senderId   String
+  receiverId String?
+  groupId    String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  sender     User?    @relation("MessageSender", fields: [senderId], references: [id])
+  receiver   User?    @relation("MessageReceiver", fields: [receiverId], references: [id])
+  group      Group?   @relation(fields: [groupId], references: [id])
+}
+
+model Group {
+  id        String        @id @default(cuid())
+  name      String
+  avatar    String        @default("")
+  creatorId String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  
+  creator   User          @relation("GroupCreator", fields: [creatorId], references: [id])
+  members   GroupMember[]
+  messages  Message[]
+}
+
+model GroupMember {
+  id       String   @id @default(cuid())
+  userId   String
+  groupId  String
+  role     String   @default("MEMBER")
+  joinedAt DateTime @default(now())
+  
+  user     User     @relation(fields: [userId], references: [id])
+  group    Group    @relation(fields: [groupId], references: [id])
+  
+  @@unique([userId, groupId])
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("PENDING")
+  assigneeId  String?
+  creatorId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  assignee    User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator     User     @relation("TaskCreator", fields: [creatorId], references: [id])
+}
+
+model Approval {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  status      String   @default("PENDING")
+  applicantId String
+  approverId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  applicant   User     @relation("ApprovalApplicant", fields: [applicantId], references: [id])
+  approver    User?    @relation("ApprovalApprover", fields: [approverId], references: [id])
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Moment {
+  id        String       @id @default(cuid())
+  content   String
+  userId    String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user      User         @relation(fields: [userId], references: [id])
+  likes     MomentLike[]
+}
+
+model MomentLike {
+  id        String   @id @default(cuid())
+  momentId  String
+  userId    String
+  createdAt DateTime @default(now())
+
+  moment    Moment   @relation(fields: [momentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([momentId, userId])
+}
