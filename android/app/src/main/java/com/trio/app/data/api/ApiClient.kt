@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-  private const val BASE_URL = "http://192.168.0.111:3000/"
+  private const val BASE_URL = "https://telegram-1htm.onrender.com/"
 
     private var retrofit: Retrofit? = null
     private var _apiService: ApiService? = null

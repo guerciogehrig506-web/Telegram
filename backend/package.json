@@ -12,7 +12,7 @@
     "generate": "prisma generate"
   },
   "dependencies": {
-    "@libsql/client": "^0.17.3",
+    "@libsql/client": "^0.8.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^10.0.0",
@@ -20,7 +20,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/platform-socket.io": "^10.0.0",
     "@nestjs/websockets": "^10.0.0",
-    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/adapter-libsql": "^5.22.0",
     "@prisma/client": "^5.0.0",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",

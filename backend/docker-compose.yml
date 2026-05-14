@@ -30,6 +30,7 @@ services:
       SESSION_SECRET: "trio-session-production-secret-change-me"
       ADMIN_PASSWORD: "admin123"
       PORT: "3000"
+    entrypoint: ["sh", "/app/docker/entrypoint.sh"]
     depends_on:
       db:
         condition: service_healthy
